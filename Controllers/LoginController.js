@@ -1,19 +1,17 @@
 import { credenciales } from "../index.js";
 
-// Creamos una función asincrona para esperar respuesta de la bd 
+// Función asincrónica para autenticación de usuario
 export async function login(req, res) {
-
-    // Desde el body enviamos credenciales (Leemos datos y guardamos)
-    const { correo, password } = req.body; 
+    const { correo, password } = req.body;
 
     try {
-        // Consulta SQL 
-        const queryText = `SELECT * FROM usuarios where correo = '${correo}' AND password = '${password}'`;
+        const queryText = "SELECT * FROM usuarios WHERE correo = $1 AND password = $2";
+        const values = [correo, password];
 
-        // Ejecutamos la consulta en la base de datos y esperamos la respuesta
-        const documento = await credenciales.query(queryText);
+        // Ejecutamos la consulta y esperamos la respuesta
+        const documento = await credenciales.query(queryText, values);
 
-        // Si es mayor a 0 es debido a que las credenciales son correctas
+        // Verificamos si se encontraron credenciales válidas
         if (documento.rows.length > 0) {
             res.status(200).json(documento.rows);
         } else {
@@ -21,6 +19,6 @@ export async function login(req, res) {
         }
     } catch (err) {
         console.error("Error en la consulta de login:", err);
-        res.status(500).json({ error: "Error interno del servidor" });
+        res.status(500).json({ error: "Error interno del servidor. Intente nuevamente más tarde." });
     }
 }
